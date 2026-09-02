@@ -329,26 +329,24 @@ def main():
                     top = 13
                     left = 18
                     upperLeft = [ 26, 40 ]
-                    margin = 10
+                    margin = 0
 
                     resolution = [ center[0] * 2, center[1] * 2 ]
                     scale = math.tan(math.radians(hFOR/2)) / (resolution[0]/2)
                     cornerPixels = math.sqrt((center[0]-upperLeft[0])**2 + (center[1]-upperLeft[1])**2)
                     cornerMargin = math.sqrt((center[0]-margin)**2 + (center[1]-margin)**2)
                     cornerRatio = cornerMargin / cornerPixels
-                    dMap = [ [0, 0],
-                              # Half the distance to the top, keep unity scale within.
-                              [ scale * (center[1]-top)/2, scale * (center[1]-top)/2 ],
-                              # The distance to the top gets pushed to the margin.
-                              [ scale * (center[1]-top), scale * (center[1]-margin) ],
-                              # The distance to the left gets pushed to the margin.
-                              [ scale * (center[0]-left), scale * (center[0]-margin) ],
-                              # The corner gets pushed to the corner margin.
-                              [ scale * cornerPixels, scale * cornerMargin ],
-                              # The rest gets pushed by the same ratio as the corner.
-                              # This is way oversized to make sure we get all pixels.
-                              [ 10, 10 * cornerRatio ]
-                            ]
+                    dMap = [
+                            [0, 0],
+                            [0.52, 0.52],
+                            [0.988, 1.09],
+                            [1.28, 1.8],
+                            [1.47, 2.7],
+                            [10, 18.3]
+                           ]
+
+                    # Adjust the fields of view to keep the points within bounds, again empirical
+                    cam["fieldOfViewDegrees"] = [hFOR * 100/110, vFOR * 86/88]
 
                 # Modify distortion data and add fields when simulating
                 if args.simulation:
