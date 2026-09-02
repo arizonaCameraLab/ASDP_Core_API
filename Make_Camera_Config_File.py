@@ -325,10 +325,10 @@ def main():
                     # fractions of the image that we want to shift and then use the
                     # field of view to scale to match the distortion on the Z=-1 plane.
                     # Scale the edges to reach the margin.
-                    center = [ 227, 223 ]
-                    top = 21
-                    left = 27
-                    upperLeft = [ 41, 64 ]
+                    center = [ 178, 143 ]
+                    top = 13
+                    left = 18
+                    upperLeft = [ 26, 40 ]
                     margin = 10
 
                     resolution = [ center[0] * 2, center[1] * 2 ]
