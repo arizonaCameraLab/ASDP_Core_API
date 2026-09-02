@@ -1,4 +1,4 @@
-# Copyright (C) 2024: Arizona Board of Regents on Behalf of the University of Arizona
+# Copyright (C) 2024-2026: Arizona Board of Regents on Behalf of the University of Arizona
 #
 # Script to generate a camera configuration file for a specified number of cameras.
 # This generates a JSON file with the camera configuration information.  It defaults to a
@@ -62,7 +62,7 @@ def nested_rotations(X1, Y1, Z1, X2, Y2, Z2):
     return euler_angles
 
 def main():
-    print("Make_Camera_Config_File.py version 3.1.0");
+    print("Make_Camera_Config_File.py version 3.2.0");
 
     parser = argparse.ArgumentParser(description="Generate a camera configuration file for a specified number of cameras.")
     parser.add_argument('--output', type=str, default='camConfig.json', help='Output JSON file name (default: camConfig.json)')
@@ -96,6 +96,7 @@ def main():
     parser.add_argument('--add_rot_z', type=float, default=0.0, help='Additional rotation around Z axis deg (default: 0.0)')
     parser.add_argument('--upside_down', action='store_true', help='Flip the camera upside down')
     parser.add_argument('--flip_parity', type=int, default=0, help='Parity of per-column camera rotation, set 1 for flipped')
+    parser.add_argument('--wFOV_distortion', action='store_true', help='Add distortion to wide-field cameras similar to that empirically seen')
     
     args = parser.parse_args()
 
@@ -314,6 +315,38 @@ def main():
                 cam["vignette"]["parameters"] = {}
                 cam["vignette"]["parameters"]["COP"] = [0.0, 0.0]
                 cam["vignette"]["parameters"]["ceofficients"] = [1.0]
+
+                # Add distortion if we've been asked to
+                if args.wFOV_distortion:
+                    # Empirically determined coarse offsets based on wFOV cameras
+                    # developed for the project, to get the sampled points near the
+                    # edges of the field of view to be more accurate.
+                    # Use the locations of pixels in the original image to compute the
+                    # fractions of the image that we want to shift and then use the
+                    # field of view to scale to match the distortion on the Z=-1 plane.
+                    # Scale the edges to reach the margin.
+                    center = [ 178, 143 ]
+                    top = 13
+                    left = 18
+                    upperLeft = [ 26, 40 ]
+                    margin = 0
+
+                    resolution = [ center[0] * 2, center[1] * 2 ]
+                    scale = math.tan(math.radians(hFOR/2)) / (resolution[0]/2)
+                    cornerPixels = math.sqrt((center[0]-upperLeft[0])**2 + (center[1]-upperLeft[1])**2)
+                    cornerMargin = math.sqrt((center[0]-margin)**2 + (center[1]-margin)**2)
+                    cornerRatio = cornerMargin / cornerPixels
+                    dMap = [
+                            [0, 0],
+                            [0.52, 0.52],
+                            [0.988, 1.09],
+                            [1.28, 1.8],
+                            [1.47, 2.7],
+                            [10, 18.3]
+                           ]
+
+                    # Adjust the fields of view to keep the points within bounds, again empirical
+                    cam["fieldOfViewDegrees"] = [hFOR * 100/110, vFOR * 86/88]
 
                 # Modify distortion data and add fields when simulating
                 if args.simulation:
